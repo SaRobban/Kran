@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CraneControls : MonoBehaviour
 {
+
+
     [SerializeField] private GameObject wirePreFab;
     [Header("Parts")]
     [SerializeField] private Transform tower;
@@ -18,6 +20,44 @@ public class CraneControls : MonoBehaviour
     [SerializeField] private float hookSpeed = 40;
 
     [SerializeField] private float wireLength = 50;
+
+    class Joint
+    {
+        public Transform anchor;
+        public Rigidbody rb;
+        float ropeLenght = 3;
+        float damping = 1;
+        public Joint(Transform parent, Rigidbody rb, float ropeLenght)
+        {
+            this.anchor = parent;
+            this.rb = rb;
+            this.ropeLenght = ropeLenght;
+        }
+
+        public void Upd(float ropeLength, float deltaTime)
+        {
+            Vector3 dir = rb.transform.position - anchor.position;
+            float dist = dir.magnitude;
+
+            if (dist > ropeLength)
+            {
+                dir = dir.normalized;
+
+                Plane plane = new Plane(dir, anchor.position);
+                Vector3 planeVelocity = plane.ClosestPointOnPlane(rb.position + rb.velocity) - anchor.position;
+
+                rb.position = anchor.position + dir * ropeLenght;
+                rb.velocity = planeVelocity * (1 - damping * deltaTime);
+                //   Debug.DrawRay(rb.position, planeVelocity, Color.green);
+            }
+        }
+
+        public Vector3 GetPoint()
+        {
+            return rb.transform.position;
+        }
+    }
+    private Joint joint;
     class CraneInput
     {
         CraneControls owner;
@@ -65,7 +105,7 @@ public class CraneControls : MonoBehaviour
             this.owner = owner;
             wireLength = new float[owner.wirePath.Length];
             wire = new Transform[wireLength.Length - 1];
-            
+
 
             scale = Vector3.one;
 
@@ -89,7 +129,7 @@ public class CraneControls : MonoBehaviour
         {
             float c = owner.wireLength;
             int a = 0;
-            for (int b = 1; b < wireLength.Length-1; b++)
+            for (int b = 1; b < wireLength.Length - 1; b++)
             {
                 wire[a].position = owner.wirePath[a].position;
                 Vector3 dir = owner.wirePath[a].position - owner.wirePath[b].position;
@@ -106,6 +146,10 @@ public class CraneControls : MonoBehaviour
             wire[wire.Length - 1].localScale = scale;
         }
 
+        public float GetLastLenght()
+        {
+            return wire[wire.Length - 1].localScale.y;
+        }
 
     }
     Wire wireMessure;
@@ -114,6 +158,11 @@ public class CraneControls : MonoBehaviour
     {
         craneInput = new CraneInput(this);
         wireMessure = new Wire(this);
+
+        GameObject go = new GameObject("HookDummy");
+        go.transform.position = jib.position - Vector3.up * wireMessure.GetLastLenght();
+        Rigidbody rb = go.AddComponent<Rigidbody>();
+        joint = new Joint(jib, rb, wireMessure.GetLastLenght());
     }
 
     // Update is called once per frame
@@ -122,5 +171,11 @@ public class CraneControls : MonoBehaviour
         cabin.rotation *= craneInput.c_RotateCabin;
         boom.rotation *= craneInput.c_RotateBoom;
         wireMessure.UpdatePathLength();
+//    }
+
+//    private void FixedUpdate()
+//    {
+        joint.Upd(wireMessure.GetLastLenght(), Time.fixedDeltaTime);
+        hook.position = joint.GetPoint();
     }
 }
