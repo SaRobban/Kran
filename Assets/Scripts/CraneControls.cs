@@ -23,47 +23,6 @@ public class CraneControls : MonoBehaviour
             get;
         }
     }
-
-
-    /*
-    class Joint
-    {
-        public Transform anchor;
-        public Rigidbody rb;
-        float ropeLenght = 3;
-        float damping = 1;
-        public Joint(Transform parent, Rigidbody rb, float ropeLenght)
-        {
-            this.anchor = parent;
-            this.rb = rb;
-            this.ropeLenght = ropeLenght;
-        }
-
-        public void Upd(float ropeLength, float deltaTime)
-        {
-            Vector3 dir = rb.transform.position - anchor.position;
-            float dist = dir.magnitude;
-
-            if (dist > ropeLength)
-            {
-                dir = dir.normalized;
-
-                Plane plane = new Plane(dir, anchor.position);
-                Vector3 planeVelocity = plane.ClosestPointOnPlane(rb.position + rb.velocity) - anchor.position;
-
-                rb.position = anchor.position + dir * ropeLenght;
-                rb.velocity = planeVelocity * (1 - damping * deltaTime);
-                //   Debug.DrawRay(rb.position, planeVelocity, Color.green);
-            }
-        }
-
-        public Vector3 GetPoint()
-        {
-            return rb.transform.position;
-        }
-    }
-    private Joint joint;
-    */
     class CraneInput : I_CraneInput
     {
         public class ControlCurve
@@ -101,6 +60,9 @@ public class CraneControls : MonoBehaviour
         public Quaternion c_RotateBoom => RotateBoom();
         public float c_Hook => HookControl();
         public float c_Move => MoveCrane();
+
+        public bool c_magnet => MagnetControl();
+        private bool magnetControl;
 
         public ControlCurve curveCabinControl;
         public ControlCurve curveBoomControl;
@@ -159,6 +121,16 @@ public class CraneControls : MonoBehaviour
         {
             return 0;
         }
+
+        bool MagnetControl()
+        {
+            if (Input.GetButtonDown("A"))
+                magnetControl = true;
+            if (Input.GetButtonDown("Z"))
+                magnetControl = false;
+            return magnetControl;
+
+        }
     }
     CraneInput craneInput;
 
@@ -175,6 +147,9 @@ public class CraneControls : MonoBehaviour
     public AnimationCurve HookControlCurve;
     public float hookMaxSpeed = 10;
     public float hookDrag;
+
+    [Header("HookFunctions")]
+    public SpawnIron magnet;
 
     class Wire
     {
@@ -233,6 +208,13 @@ public class CraneControls : MonoBehaviour
             return wire[wire.Length - 1].localScale.y;
         }
 
+
+        public void ConnectLast(Vector3 jib, Vector3 hookPos)
+        {
+            Vector3 dir = hookPos - jib;
+            wire[wire.Length - 1].position = hookPos;
+            wire[wire.Length - 1].up = dir.normalized;
+        }
     }
     Wire wireMessure;
 
@@ -251,6 +233,7 @@ public class CraneControls : MonoBehaviour
     [SerializeField] private float wireLength = 50;
 
     public ConfigurableJoint wireJoint;
+    SoftJointLimit wireJointLimit;
 
     ConfigurableJoint[] joints;
     // Start is called before the first frame update
@@ -259,55 +242,11 @@ public class CraneControls : MonoBehaviour
         craneInput = new CraneInput(this);
         wireMessure = new Wire(this);
         hook.transform.position = jib.position - Vector3.up * wireMessure.GetLastLenght();
-    }
+        hook.gameObject.GetComponent<Rigidbody>().sleepThreshold = 0;
+        wireJointLimit = new SoftJointLimit();
+        wireJointLimit.limit = wireMessure.GetLastLenght();
+        wireJoint.linearLimit = wireJointLimit;
 
-    void SetupJoints()
-    {
-
-        int numberOfSegments = 7;
-
-        joints = new ConfigurableJoint[numberOfSegments];
-
-        Vector3 startPos = jib.transform.position;
-        Vector3 goalPos = hook.transform.position;
-
-        Vector3 dir = goalPos - startPos;
-        float fullDist = dir.magnitude;
-        float segmentDist = fullDist / numberOfSegments;
-        dir = dir.normalized;
-
-        Rigidbody lastBody = jib.GetComponent<Rigidbody>();
-        for (int i = 0; i < numberOfSegments; i++)
-        {
-            Vector3 nextPos = startPos + dir * (i + 1) * segmentDist;
-            Rigidbody segmentRB = CreateRopeSegmentBodyAt(nextPos);
-            joints[i] = CreateJoint(lastBody, segmentRB);
-            //   joints[i].anchor = dir * segmentDist*-0.5f;
-
-            lastBody = segmentRB;
-        }
-        // lastBody.isKinematic = true;
-        // lastBody.transform.parent = jib;
-
-        Debug.Log(joints.Length + " long and");
-    }
-
-    Rigidbody CreateRopeSegmentBodyAt(Vector3 pos)
-    {
-        Transform t = new GameObject("Segment").transform;
-        t.position = pos;
-        Rigidbody rb = t.gameObject.AddComponent<Rigidbody>();
-        return rb;
-    }
-
-    ConfigurableJoint CreateJoint(Rigidbody rbSource, Rigidbody rbAnchor)
-    {
-        ConfigurableJoint joint = rbSource.gameObject.AddComponent<ConfigurableJoint>();
-        joint.xMotion = ConfigurableJointMotion.Locked;
-        joint.yMotion = ConfigurableJointMotion.Locked;
-        joint.zMotion = ConfigurableJointMotion.Locked;
-        joint.connectedBody = rbAnchor;
-        return joint;
     }
 
     // Update is called once per frame
@@ -317,7 +256,12 @@ public class CraneControls : MonoBehaviour
         boom.rotation *= craneInput.c_RotateBoom;
         wireLength += craneInput.c_Hook;
         wireMessure.UpdatePathLength();
-        wireJoint.connectedAnchor = Vector3.up* wireMessure.GetLastLenght();
+        wireJointLimit.limit = wireMessure.GetLastLenght();
+        wireJoint.linearLimit = wireJointLimit;
+
+        wireMessure.ConnectLast(jib.position, hook.position);
+
+        magnet.magnetOn = craneInput.c_magnet;
     }
 
     private void OnGUI()
