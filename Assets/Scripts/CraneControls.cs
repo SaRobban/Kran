@@ -18,7 +18,7 @@ public class CraneControls : MonoBehaviour
         {
             get;
         }
-        float c_Move
+        Vector3 c_Move
         {
             get;
         }
@@ -54,12 +54,13 @@ public class CraneControls : MonoBehaviour
             curveCabinControl = new ControlCurve();
             curveBoomControl = new ControlCurve();
             curveHookControl = new ControlCurve();
+            curveMoveControl = new ControlCurve();
         }
 
         public Quaternion c_RotateCabin => RotateCabin();
         public Quaternion c_RotateBoom => RotateBoom();
         public float c_Hook => HookControl();
-        public float c_Move => MoveCrane();
+        public Vector3 c_Move => MoveCrane();
 
         public bool c_magnet => MagnetControl();
         private bool magnetControl;
@@ -67,6 +68,7 @@ public class CraneControls : MonoBehaviour
         public ControlCurve curveCabinControl;
         public ControlCurve curveBoomControl;
         public ControlCurve curveHookControl;
+        public ControlCurve curveMoveControl;
         float HookControl()
         {
             int dir = 0;
@@ -117,9 +119,16 @@ public class CraneControls : MonoBehaviour
             return Quaternion.Euler(rotation * Time.deltaTime, 0, 0);
         }
 
-        float MoveCrane()
+        Vector3 MoveCrane()
         {
-            return 0;
+            float input = curveMoveControl.Update(
+                owner.craneCurve,
+                Input.GetAxis("Vertical"),
+                owner.craneMoveSpeed,
+                owner.craneDrag,
+                Time.deltaTime
+                );
+            return owner.craneAxis * input * Time.deltaTime;
         }
 
         bool MagnetControl()
@@ -135,6 +144,11 @@ public class CraneControls : MonoBehaviour
     CraneInput craneInput;
 
     [Header("Input")]
+    [Header("TowerMove")]
+    public AnimationCurve craneCurve;
+    public float craneMoveSpeed = 5;
+    public float craneDrag = 0.02f;
+    Vector3 craneAxis = Vector3.forward;
     [Header("Cabin")]
     public AnimationCurve cabinControlCurve;
     public float cabinMaxSpeed = 20;
@@ -252,6 +266,7 @@ public class CraneControls : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        tower.position += craneInput.c_Move;
         cabin.rotation *= craneInput.c_RotateCabin;
         boom.rotation *= craneInput.c_RotateBoom;
         wireLength += craneInput.c_Hook;
