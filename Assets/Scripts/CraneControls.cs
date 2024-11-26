@@ -4,23 +4,28 @@ using UnityEngine;
 
 public class CraneControls : MonoBehaviour
 {
+    interface I_CraneInput
+    {
+        Quaternion c_RotateCabin
+        {
+            get;
+        }
+        Quaternion c_RotateBoom
+        {
+            get;
+        }
+        float c_Hook
+        {
+            get;
+        }
+        float c_Move
+        {
+            get;
+        }
+    }
 
 
-    [SerializeField] private GameObject wirePreFab;
-    [Header("Parts")]
-    [SerializeField] private Transform tower;
-    [SerializeField] private Transform cabin;
-    [SerializeField] private Transform boom;
-    [SerializeField] private Transform jib;
-    [SerializeField] private Transform hook;
-    [SerializeField] private Transform[] wirePath;
-
-    [SerializeField] private float towerSpeed = 40;
-    [SerializeField] private float boomSpeed = 40;
-    [SerializeField] private float hookSpeed = 40;
-
-    [SerializeField] private float wireLength = 50;
-
+    /*
     class Joint
     {
         public Transform anchor;
@@ -58,40 +63,118 @@ public class CraneControls : MonoBehaviour
         }
     }
     private Joint joint;
-    class CraneInput
+    */
+    class CraneInput : I_CraneInput
     {
+        public class ControlCurve
+        {
+            public float rawValue = 0;
+            public float result;
+            /// <summary>
+            /// I Know this is messy but it allows for realtime edit in editor
+            /// </summary>
+            public float Update(AnimationCurve curve, float change, float max, float drag, float delta)
+            {
+                rawValue *= (1 - drag * delta);
+                rawValue += change * delta;
+                rawValue = Mathf.Clamp(rawValue, -1, 1);
+
+                if (rawValue < 0)
+                    result = curve.Evaluate(Mathf.Abs(rawValue)) * -max;
+                else
+                    result = curve.Evaluate(rawValue) * max;
+
+                return result;
+            }
+        }
+
         CraneControls owner;
         public CraneInput(CraneControls owner)
         {
             this.owner = owner;
+            curveCabinControl = new ControlCurve();
+            curveBoomControl = new ControlCurve();
+            curveHookControl = new ControlCurve();
         }
 
         public Quaternion c_RotateCabin => RotateCabin();
         public Quaternion c_RotateBoom => RotateBoom();
-        public float c_hook => Input.mouseScrollDelta.y;
-        public float c_move => HookControl();
+        public float c_Hook => HookControl();
+        public float c_Move => MoveCrane();
 
+        public ControlCurve curveCabinControl;
+        public ControlCurve curveBoomControl;
+        public ControlCurve curveHookControl;
         float HookControl()
         {
-            if (Input.GetButtonDown("Fire1"))
-                return 1;
-            if (Input.GetButtonDown("Fire2"))
-                return -1;
-            return 0;
+            int dir = 0;
+            if (Input.GetButton("Fire1"))
+            {
+                dir = -1;
+            }
+            if (Input.GetButton("Fire2"))
+            {
+                dir = 1;
+            }
+
+            float raiseHook = curveHookControl.Update(
+                    owner.HookControlCurve,
+                    dir,
+                    owner.hookMaxSpeed,
+                    owner.hookDrag,
+                    Time.deltaTime
+                    );
+
+            return raiseHook;
         }
 
         Quaternion RotateCabin()
         {
-            return Quaternion.Euler(0, Input.GetAxis("Horizontal") * owner.towerSpeed * Time.deltaTime, 0);
-        }
+            float input = Input.GetAxis("Horizontal");
 
+            float rotation = curveCabinControl.Update(
+                owner.cabinControlCurve,
+                input,
+                owner.cabinMaxSpeed,
+                owner.cabinDrag,
+                Time.deltaTime
+                );
+            return Quaternion.Euler(0, rotation * Time.deltaTime, 0);
+        }
         Quaternion RotateBoom()
         {
-            return Quaternion.Euler(Input.GetAxis("Vertical") * owner.boomSpeed * Time.deltaTime, 0, 0);
+            float input = Input.GetAxis("Vertical");
+
+            float rotation = curveBoomControl.Update(
+                owner.boomControlCurve,
+                input,
+                owner.boomMaxSpeed,
+                owner.boomDrag,
+                Time.deltaTime
+                );
+            return Quaternion.Euler(rotation * Time.deltaTime, 0, 0);
         }
 
+        float MoveCrane()
+        {
+            return 0;
+        }
     }
     CraneInput craneInput;
+
+    [Header("Input")]
+    [Header("Cabin")]
+    public AnimationCurve cabinControlCurve;
+    public float cabinMaxSpeed = 20;
+    public float cabinDrag = 0.25f;
+    [Header("Boom")]
+    public AnimationCurve boomControlCurve;
+    public float boomMaxSpeed = 10;
+    public float boomDrag = 2;
+    [Header("Hook")]
+    public AnimationCurve HookControlCurve;
+    public float hookMaxSpeed = 10;
+    public float hookDrag;
 
     class Wire
     {
@@ -121,7 +204,6 @@ public class CraneControls : MonoBehaviour
                 wire[a].localScale = scale;
                 a = b;
             }
-            Debug.Log(wire.Length);
             owner.wireLength = c;
         }
 
@@ -153,16 +235,79 @@ public class CraneControls : MonoBehaviour
 
     }
     Wire wireMessure;
+
+    [SerializeField] private GameObject wirePreFab;
+    [Header("Parts")]
+    [SerializeField] private Transform tower;
+    [SerializeField] private Transform cabin;
+    [SerializeField] private Transform boom;
+    [SerializeField] private Transform jib;
+    [SerializeField] private Transform hook;
+    [SerializeField] private Transform[] wirePath;
+
+    [SerializeField] private float towerSpeed = 40;
+    [SerializeField] private float boomSpeed = 40;
+    [SerializeField] private float hookSpeed = 40;
+    [SerializeField] private float wireLength = 50;
+
+    public ConfigurableJoint wireJoint;
+
+    ConfigurableJoint[] joints;
     // Start is called before the first frame update
     void Start()
     {
         craneInput = new CraneInput(this);
         wireMessure = new Wire(this);
+        hook.transform.position = jib.position - Vector3.up * wireMessure.GetLastLenght();
+    }
 
-        GameObject go = new GameObject("HookDummy");
-        go.transform.position = jib.position - Vector3.up * wireMessure.GetLastLenght();
-        Rigidbody rb = go.AddComponent<Rigidbody>();
-        joint = new Joint(jib, rb, wireMessure.GetLastLenght());
+    void SetupJoints()
+    {
+
+        int numberOfSegments = 7;
+
+        joints = new ConfigurableJoint[numberOfSegments];
+
+        Vector3 startPos = jib.transform.position;
+        Vector3 goalPos = hook.transform.position;
+
+        Vector3 dir = goalPos - startPos;
+        float fullDist = dir.magnitude;
+        float segmentDist = fullDist / numberOfSegments;
+        dir = dir.normalized;
+
+        Rigidbody lastBody = jib.GetComponent<Rigidbody>();
+        for (int i = 0; i < numberOfSegments; i++)
+        {
+            Vector3 nextPos = startPos + dir * (i + 1) * segmentDist;
+            Rigidbody segmentRB = CreateRopeSegmentBodyAt(nextPos);
+            joints[i] = CreateJoint(lastBody, segmentRB);
+            //   joints[i].anchor = dir * segmentDist*-0.5f;
+
+            lastBody = segmentRB;
+        }
+        // lastBody.isKinematic = true;
+        // lastBody.transform.parent = jib;
+
+        Debug.Log(joints.Length + " long and");
+    }
+
+    Rigidbody CreateRopeSegmentBodyAt(Vector3 pos)
+    {
+        Transform t = new GameObject("Segment").transform;
+        t.position = pos;
+        Rigidbody rb = t.gameObject.AddComponent<Rigidbody>();
+        return rb;
+    }
+
+    ConfigurableJoint CreateJoint(Rigidbody rbSource, Rigidbody rbAnchor)
+    {
+        ConfigurableJoint joint = rbSource.gameObject.AddComponent<ConfigurableJoint>();
+        joint.xMotion = ConfigurableJointMotion.Locked;
+        joint.yMotion = ConfigurableJointMotion.Locked;
+        joint.zMotion = ConfigurableJointMotion.Locked;
+        joint.connectedBody = rbAnchor;
+        return joint;
     }
 
     // Update is called once per frame
@@ -170,12 +315,13 @@ public class CraneControls : MonoBehaviour
     {
         cabin.rotation *= craneInput.c_RotateCabin;
         boom.rotation *= craneInput.c_RotateBoom;
+        wireLength += craneInput.c_Hook;
         wireMessure.UpdatePathLength();
-//    }
+        wireJoint.connectedAnchor = Vector3.up* wireMessure.GetLastLenght();
+    }
 
-//    private void FixedUpdate()
-//    {
-        joint.Upd(wireMessure.GetLastLenght(), Time.fixedDeltaTime);
-        hook.position = joint.GetPoint();
+    private void OnGUI()
+    {
+        GUI.TextField(new Rect(0, 0, 200, 20), "RAW : " + craneInput.curveCabinControl.rawValue + "  EV : " + craneInput.curveCabinControl.result.ToString());
     }
 }
