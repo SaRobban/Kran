@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CraneControls : MonoBehaviour
+public class OLD_CraneControls : MonoBehaviour
 {
     interface I_CraneInput
     {
@@ -46,9 +46,8 @@ public class CraneControls : MonoBehaviour
                 return result;
             }
         }
-
-        CraneControls owner;
-        public CraneInput(CraneControls owner)
+        OLD_CraneControls owner;
+        public CraneInput(OLD_CraneControls owner)
         {
             this.owner = owner;
             curveCabinControl = new ControlCurve();
@@ -69,6 +68,7 @@ public class CraneControls : MonoBehaviour
         public ControlCurve curveBoomControl;
         public ControlCurve curveHookControl;
         public ControlCurve curveMoveControl;
+        
         float HookControl()
         {
             int dir = 0;
@@ -167,12 +167,12 @@ public class CraneControls : MonoBehaviour
 
     class Wire
     {
-        CraneControls owner;
+        OLD_CraneControls owner;
         float[] wireLength;
         Vector3 scale;
         Transform[] wire;
 
-        public Wire(CraneControls owner)
+        public Wire(OLD_CraneControls owner)
         {
             this.owner = owner;
             wireLength = new float[owner.wirePath.Length];
