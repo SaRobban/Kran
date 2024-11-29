@@ -4389,9 +4389,13 @@ GameObject:
   - component: {fileID: 1327315227}
   - component: {fileID: 1327315226}
   - component: {fileID: 1327315229}
+  - component: {fileID: 1327315233}
   - component: {fileID: 1327315228}
+  - component: {fileID: 1327315232}
   - component: {fileID: 1327315231}
   - component: {fileID: 1327315230}
+  - component: {fileID: 1327315234}
+  - component: {fileID: 1327315235}
   m_Layer: 0
   m_Name: Crane
   m_TagString: Untagged
@@ -4565,23 +4569,77 @@ MonoBehaviour:
   gear: 0
   craneCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  craneMoveSpeed: 5
-  craneDrag: 0.02
+  craneMoveSpeed: 1
+  craneDrag: 0.2
   cabinControlCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  cabinMaxSpeed: 20
+  cabinMaxSpeed: 10
   cabinDrag: 0.25
   boomControlCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
@@ -4589,11 +4647,29 @@ MonoBehaviour:
   boomDrag: 2
   HookControlCurve:
     serializedVersion: 2
-    m_Curve: []
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  hookMaxSpeed: 10
+  hookMaxSpeed: 2
   hookDrag: 0
 --- !u!114 &1327315229
 MonoBehaviour:
@@ -4607,7 +4683,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f05a80846e1d837478e51ed08dd73012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  parts: {fileID: 0}
   input: {fileID: 1327315228}
+  move: {fileID: 0}
+  wire: {fileID: 0}
+  winch: {fileID: 0}
   sounds: {fileID: 0}
 --- !u!114 &1327315230
 MonoBehaviour:
@@ -4719,6 +4799,67 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1327315232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327315225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6afe0dd1d560bd04b943e8a9b09fbc07, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  wirePath:
+  - {fileID: 2070434504}
+  - {fileID: 1848783228}
+  - {fileID: 320143390}
+  - {fileID: 1611182277}
+  wirePrefab: {fileID: 919132149155446097, guid: 3e3afc03542875d4d8a934539c107da6, type: 3}
+  totalLenght: 0
+--- !u!114 &1327315233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327315225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b07c9d604b65bc4394e99129d6b4810, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tower: {fileID: 1327315227}
+  cabin: {fileID: 287912704}
+  boom: {fileID: 598849869}
+  jib: {fileID: 320143390}
+  hook: {fileID: 1611182277}
+  wireJoint: {fileID: 320143393}
+--- !u!114 &1327315234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327315225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c57aeee43a3169428fc91398dc80a9f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1327315235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327315225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f24f7c25db148341970b651cc8e1416, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1458360092
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CraneContols : MonoBehaviour
@@ -22,7 +20,6 @@ public class CraneContols : MonoBehaviour
                 rawValue *= (1 - slowDown * delta);
                 rawValue += gas * delta;
                 rawValue = Mathf.Clamp(rawValue, -1, 1);
-
                 if (rawValue < 0)
                     result = curve.Evaluate(Mathf.Abs(rawValue)) * -max;
                 else
@@ -42,8 +39,8 @@ public class CraneContols : MonoBehaviour
         }
 
         public Quaternion c_RotateCabin;
-        public Quaternion c_RotateBoom;
-        public float c_Hook;
+        public Quaternion c_TiltBoom;
+        public float c_Winch;
         public Vector3 c_Move;
         public bool c_magnet;
         private bool magnetControl;
@@ -95,10 +92,10 @@ public class CraneContols : MonoBehaviour
                     break;
             }
 
-            MoveCrane(movePower, brake, deltaTime);
-            RotateCrane(towerPower, brake, deltaTime);
-            TiltBoom(boomPower, brake, deltaTime);
-            WindWinch(winchPower, brake, deltaTime);
+            c_Move = MoveCrane(movePower, brake, deltaTime);
+            c_RotateCabin = RotateCrane(towerPower, brake, deltaTime);
+            c_TiltBoom = TiltBoom(boomPower, brake, deltaTime);
+            c_Winch = WindWinch(winchPower, brake, deltaTime);
         }
 
         void Shift()
@@ -138,19 +135,19 @@ public class CraneContols : MonoBehaviour
                 owner.craneDrag,
                 deltaTime
                 );
-            return owner.craneAxis * input * Time.deltaTime;
+            return owner.craneAxis * input * deltaTime ;
         }
         Quaternion RotateCrane(float gas, float brake, float deltaTime)
         {
             float rotation = curveCabinControl.Update(
                 owner.cabinControlCurve,
-                gas,
+                gas ,
                 brake,
                 owner.cabinMaxSpeed,
                 owner.cabinDrag,
                 deltaTime
                 );
-            return Quaternion.Euler(0, rotation * Time.deltaTime, 0);
+            return Quaternion.Euler(0, rotation *deltaTime, 0);
         }
         Quaternion TiltBoom(float gas, float brake, float deltaTime)
         {
@@ -162,7 +159,7 @@ public class CraneContols : MonoBehaviour
                 owner.boomDrag,
                 deltaTime
                 );
-            return Quaternion.Euler(rotation * Time.deltaTime, 0, 0);
+            return Quaternion.Euler(rotation * deltaTime, 0, 0);
         }
         float WindWinch(float gas, float brake, float deltaTime)
         {
@@ -175,7 +172,7 @@ public class CraneContols : MonoBehaviour
                     deltaTime
                     );
 
-            return raiseHook;
+            return raiseHook * deltaTime;
         }
 
 
@@ -213,8 +210,8 @@ public class CraneContols : MonoBehaviour
 
 
     public Quaternion c_RotateCabin => craneInput.c_RotateCabin;
-    public Quaternion c_RotateBoom => craneInput.c_RotateBoom;
-    public float c_Hook => craneInput.c_Hook;
+    public Quaternion c_TiltBoom => craneInput.c_TiltBoom;
+    public float c_Winch => craneInput.c_Winch;
     public Vector3 c_Move => craneInput.c_Move;
     public bool c_magnet => craneInput.c_magnet;
     public bool magnetControl => craneInput.c_magnet;
@@ -226,5 +223,10 @@ public class CraneContols : MonoBehaviour
     public void Tick(float deltaTime)
     {
         craneInput.Update(deltaTime);
+    }
+
+    public void OnGUI()
+    {
+        GUI.TextField(new Rect(10, 10, 200, 200), "Input : \n" + c_Move + "\n" + c_RotateCabin + "\n" + c_TiltBoom + "\n" + c_Winch);
     }
 }
