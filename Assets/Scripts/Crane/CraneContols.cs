@@ -96,6 +96,7 @@ public class CraneContols : MonoBehaviour
             c_RotateCabin = RotateCrane(towerPower, brake, deltaTime);
             c_TiltBoom = TiltBoom(boomPower, brake, deltaTime);
             c_Winch = WindWinch(winchPower, brake, deltaTime);
+            c_magnet = MagnetControl();
         }
 
         void Shift()
@@ -177,7 +178,7 @@ public class CraneContols : MonoBehaviour
 
 
 
-        bool MagnetControl(float gas, float brake, float deltaTime)
+        bool MagnetControl()
         {
             if (Input.GetButtonDown("A"))
                 magnetControl = true;

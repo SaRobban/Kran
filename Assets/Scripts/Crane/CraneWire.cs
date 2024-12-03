@@ -52,14 +52,6 @@ public class CraneWire : MonoBehaviour
         {
             return wireSegments[wireSegments.Length - 1].localScale.y;
         }
-
-
-        public void ConnectLast(Vector3 jib, Vector3 hookPos)
-        {
-            Vector3 dir = hookPos - jib;
-            wireSegments[wireSegments.Length - 1].position = hookPos;
-            wireSegments[wireSegments.Length - 1].up = dir.normalized;
-        }
     }
     Wire wireMessure;
 

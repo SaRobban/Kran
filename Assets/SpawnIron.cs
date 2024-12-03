@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class SpawnIron : MonoBehaviour
 {
+    public CraneMaster craneMaster;
+
     public Collider magnet;
     public float range = 4;
     public GameObject ironCube;
@@ -37,7 +39,8 @@ public class SpawnIron : MonoBehaviour
 
         Vector3 point = magnet.transform.position;
         float aqrRange = range * range;
-        if (magnetOn)
+        //TODO : Toggle
+        if (craneMaster.input.c_magnet)
         {
             for (int i = 0; i < irons.Length; i++)
             {
@@ -53,12 +56,17 @@ public class SpawnIron : MonoBehaviour
                 }
             }
         }
-        if (!magnetOn) { 
+        if (!craneMaster.input.c_magnet) { 
             foreach (IronCubeCode cube in irons)
             {
                 cube.transform.parent = null;
                 cube.rb.isKinematic = false;
             }
         }
+    }
+
+    private void OnGUI()
+    {
+        GUI.TextField(new Rect(10, 300,200,100), "Magnet : "+ craneMaster.input.c_magnet);
     }
 }
