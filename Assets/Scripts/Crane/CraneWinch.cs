@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Timeline;
 
 public class CraneWinch : MonoBehaviour
 {
@@ -14,16 +13,28 @@ public class CraneWinch : MonoBehaviour
     {
         this.master = master;
 
-        parts.Hook.transform.position = parts.Jib.position - Vector3.up * wire.totalLenght;
+        float lengthToHook = 3;
+
+        parts.Hook.transform.position = parts.Jib.position - Vector3.up * lengthToHook;
         parts.Hook.gameObject.GetComponent<Rigidbody>().sleepThreshold = 0;
         wireJointLimit = new SoftJointLimit();
-        wireJointLimit.limit = wire.totalLenght;
+        wireJointLimit.limit = lengthToHook;
         parts.WireJoint.linearLimit = wireJointLimit;
     }
     // Update is called once per frame
     public void Tick(float deltaTime)
     {
+        if (Mathf.Abs(master.input.c_Winch) < Mathf.Epsilon)
+            return;
+
+        Rigidbody hook = parts.WireJoint.connectedBody;
+        parts.WireJoint.connectedBody = null;
         wireJointLimit.limit += master.input.c_Winch;
         parts.WireJoint.linearLimit = wireJointLimit;
+
+        Vector3 dir = hook.position- parts.Jib.position;
+        hook.transform.position += dir.normalized * master.input.c_Winch;
+
+        parts.WireJoint.connectedBody = hook;
     }
 }
