@@ -276,9 +276,10 @@ public class OLD_CraneControls : MonoBehaviour
 
         magnet.magnetOn = craneInput.c_magnet;
     }
-
+    /*
     private void OnGUI()
     {
         GUI.TextField(new Rect(0, 0, 200, 20), "RAW : " + craneInput.curveCabinControl.rawValue + "  EV : " + craneInput.curveCabinControl.result.ToString());
     }
+    */
 }

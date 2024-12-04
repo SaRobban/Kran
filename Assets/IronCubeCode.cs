@@ -17,13 +17,13 @@ public class IronCubeCode : MonoBehaviour
     {
         if (!spawnIron.magnetOn)
             return;
-
-        if (collision.collider == spawnIron.magnet)
+        /*
+        if (collision.collider.attachedRigidbody.isKinematic == true)
         {
             rb.isKinematic = true;
             transform.parent = spawnIron.magnet.transform;
         }
-
+/*
         if (collision.collider.TryGetComponent(out Rigidbody otherRB))
         {
             if (otherRB.isKinematic == true)
@@ -32,5 +32,11 @@ public class IronCubeCode : MonoBehaviour
                 transform.parent = otherRB.transform;
             }
         }
+*/
+    }
+
+    public void MagnetOff()
+    {
+        rb.isKinematic = false;
     }
 }

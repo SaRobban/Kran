@@ -225,9 +225,10 @@ public class CraneContols : MonoBehaviour
     {
         craneInput.Update(deltaTime);
     }
-
+    /*
     public void OnGUI()
     {
         GUI.TextField(new Rect(10, 10, 200, 200), "Input : \n" + c_Move + "\n" + c_RotateCabin + "\n" + c_TiltBoom + "\n" + c_Winch);
     }
+    /*/
 }

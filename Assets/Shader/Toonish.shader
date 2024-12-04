@@ -23,9 +23,9 @@ Shader "Example/Tint Final Color" {
           flatDistFromOrigo = clamp(flatDistFromOrigo, 0, 1);
 
           half4 bg;
-          bg.r = 0.05f;
-          bg.b = 0.05f;
-          bg.g = 0.05f;
+          bg.r = 0.19f;
+          bg.g = 0.20f;
+          bg.b = 0.21f;
           bg.a = 1;
 
           half4 col = color  * _ColorTint;
@@ -38,10 +38,7 @@ Shader "Example/Tint Final Color" {
       sampler2D _MainTex;
       void surf (Input IN, inout SurfaceOutput o) {
 
-          float tint = IN.worldPos.y;
-          tint *= 0.05f;
-          tint *= 0.6f;
-          tint += 0.6f;
+
 
         
 
