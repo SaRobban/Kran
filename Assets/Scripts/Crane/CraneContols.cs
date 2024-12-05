@@ -181,7 +181,10 @@ public class CraneContols : MonoBehaviour
         bool MagnetControl()
         {
             if (Input.GetButtonDown("A"))
+            {
                 magnetControl = true;
+                owner.A_OnMagnet?.Invoke();
+            }
             if (Input.GetButtonDown("Z"))
                 magnetControl = false;
             return magnetControl;
@@ -216,6 +219,9 @@ public class CraneContols : MonoBehaviour
     public Vector3 c_Move => craneInput.c_Move;
     public bool c_magnet => craneInput.c_magnet;
     public bool magnetControl => craneInput.c_magnet;
+
+    public System.Action A_OnMagnet;
+
     public void Init()
     {
         craneInput = new CraneForceSimulator(this);

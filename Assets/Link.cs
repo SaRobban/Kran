@@ -14,7 +14,7 @@ public class Link : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position = parent.position - parent.up*1.1f;
+        transform.position = parent.position - parent.up*0.75f;
         transform.rotation = parent.rotation;
     }
 }

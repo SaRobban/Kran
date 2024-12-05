@@ -13,30 +13,4 @@ public class IronCubeCode : MonoBehaviour
         this.rb = rb;
         this.spawnIron = mother;
     }
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (!spawnIron.magnetOn)
-            return;
-        /*
-        if (collision.collider.attachedRigidbody.isKinematic == true)
-        {
-            rb.isKinematic = true;
-            transform.parent = spawnIron.magnet.transform;
-        }
-/*
-        if (collision.collider.TryGetComponent(out Rigidbody otherRB))
-        {
-            if (otherRB.isKinematic == true)
-            {
-                rb.isKinematic = true;
-                transform.parent = otherRB.transform;
-            }
-        }
-*/
-    }
-
-    public void MagnetOff()
-    {
-        rb.isKinematic = false;
-    }
 }

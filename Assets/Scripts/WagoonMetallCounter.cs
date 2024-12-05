@@ -37,9 +37,10 @@ public class WagoonMetallCounter : MonoBehaviour
     {
 
     }
-
+/*
     private void OnGUI()
     {
         GUI.TextField(new Rect(10, 600, 200, 30), "Pics : " + pices.Count.ToString());
     }
+*/
 }

@@ -1,24 +1,31 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
 public class SpawnIron : MonoBehaviour
 {
+    public Animator anim;
+
     public CraneMaster craneMaster;
     public int numberOfPices = 1000;
     public Collider magnet;
-    public float range = 4;
+    public float range = 1;
     public GameObject ironCube;
     public IronCubeCode[] irons;
 
     public bool magnetOn;
-    public float kinematicInsideRange = 1;
 
+
+    public Collider col;
     // Start is called before the first frame update
     void Awake()
     {
+        col = magnet.GetComponent<Collider>();
+                    Debug.Log(col.bounds.center);
+
         irons = new IronCubeCode[numberOfPices];
         for (int i = 0; i < irons.Length; i++)
         {
@@ -28,52 +35,50 @@ public class SpawnIron : MonoBehaviour
             code.Setup(rb, this);
             irons[i] = code;
         }
-    }
 
+        craneMaster.input.A_OnMagnet += Magnet;
+    }
+    private void OnDestroy()
+    {
+        craneMaster.input.A_OnMagnet -= Magnet;
+    }
     public void MagnetAktiv(bool on)
     {
         magnetOn = on;
     }
 
-    // Update is called once per frame
-    void Update()
+    void Magnet()
     {
-        magnet.transform.position += new Vector3(Input.GetAxis("Horizontal"), 0, Input.GetAxis("Vertical")) * Time.deltaTime;
-
-        Vector3 point = magnet.transform.position;
-        float aqrRange = range * range;
-        //TODO : Toggle
-        if (craneMaster.input.c_magnet)
+        if (magnetOn == false)
         {
+            anim.SetBool("Open", false);
+
+            Vector3 point = magnet.transform.position;
+            float aqrRange = range * range;
             for (int i = 0; i < irons.Length; i++)
             {
-                if (irons[i].rb.isKinematic)
-                    continue;
-
+                /*
+                if (col.bounds.Contains(irons[i].transform.position))
+                {
+                    irons[i].rb.isKinematic = true;
+                    irons[i].transform.parent = magnet.transform;
+                }
+                */
                 Vector3 dir = point - irons[i].transform.position;
                 float sqrdist = dir.sqrMagnitude;
-                float magForce = aqrRange - sqrdist;
-                if (magForce > 0)
+
+                if (sqrdist < range * range)
                 {
-                    float force = magForce / aqrRange;
-                    irons[i].rb.AddForce(dir.normalized * 18 * force, ForceMode.Acceleration);
+                    irons[i].rb.isKinematic = true;
+                    irons[i].transform.parent = magnet.transform;
                 }
-
-
-                if (sqrdist < kinematicInsideRange)
-                {
-                    if (Vector3.Dot(dir, irons[i].rb.velocity) < 0)
-                    {
-                        irons[i].rb.isKinematic = true;
-                        irons[i].transform.parent = magnet.transform;
-                    }
-                }
-
             }
             magnetOn = true;
+            return;
         }
-        if (!craneMaster.input.c_magnet && magnetOn == true)
+        if (magnetOn == true)
         {
+            anim.SetBool("Open", true);
             foreach (IronCubeCode cube in irons)
             {
                 cube.transform.parent = null;
@@ -82,10 +87,5 @@ public class SpawnIron : MonoBehaviour
             }
         }
     }
-    /*
-    private void OnGUI()
-    {
-        GUI.TextField(new Rect(10, 300,200,100), "Magnet : "+ craneMaster.input.c_magnet);
-    }
-    /*/
+
 }
